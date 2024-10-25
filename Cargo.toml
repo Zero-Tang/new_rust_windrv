@@ -1,0 +1,10 @@
+[package]
+name = "new_rust_windrv"
+version = "0.1.0"
+edition = "2021"
+readme = "readme.md"
+license = "MIT"
+license-file = "license.txt"
+
+[dependencies]
+indoc = "2.0.5"
