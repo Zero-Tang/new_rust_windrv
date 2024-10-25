@@ -146,7 +146,7 @@ fn main()
 	while editing
 	{
 		// Receive the crate name.
-		while crate_name.len() == 0
+		while crate_name.is_empty()
 		{
 			println!("What's the name of your new Windows Driver crate? Please name your driver in snake_case.");
 			if let Err(e) = stdin().read_line(&mut crate_name)
@@ -156,7 +156,7 @@ fn main()
 			crate_name = String::from(crate_name.trim()).to_lowercase();
 		}
 		// Receive the driver type.
-		while driver_type.len() == 0
+		while driver_type.is_empty()
 		{
 			println!("What's your driver type? Valid Options: [WDM | KMDF | UMDF]");
 			if let Err(e) = stdin().read_line(&mut driver_type)
@@ -170,7 +170,7 @@ fn main()
 				{}
 				_ =>
 				{
-					if driver_type.len() == 0
+					if driver_type.is_empty()
 					{
 						continue;
 					}
@@ -180,7 +180,7 @@ fn main()
 			}
 		}
 		// Receive the VCS type.
-		while vcs_type.len() == 0
+		while vcs_type.is_empty()
 		{
 			println!("What's your VCS type? For valid options, see: https://doc.rust-lang.org/cargo/commands/cargo-new.html#new-options");
 			println!("Recommended options: [git | none]");
@@ -205,7 +205,7 @@ fn main()
 				panic!("Failed to confirm! Reason: {e}");
 			}
 			confirmation = String::from(confirmation.trim());
-			if confirmation.len() == 0
+			if confirmation.is_empty()
 			{
 				editing = false;
 				break;
