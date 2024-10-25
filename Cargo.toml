@@ -5,6 +5,7 @@ edition = "2021"
 readme = "readme.md"
 license = "MIT"
 license-file = "license.txt"
+repository = "https://github.com/Zero-Tang/new_rust_windrv"
 
 [dependencies]
 indoc = "2.0.5"

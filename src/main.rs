@@ -65,11 +65,76 @@ static GLOBAL_ALLOCATOR: WdkAllocator = WdkAllocator;
 use wdk_sys::*;
 
 #[export_name = \"DriverEntry\"]
-pub unsafe extern \"system\" fn driver_entry(driver: PDRIVER_OBJECT, registry_path: PCUNICODE_STRING) -> NTSTATUS
+pub unsafe extern \"system\" fn driver_entry(_driver: PDRIVER_OBJECT, _registry_path: PCUNICODE_STRING) -> NTSTATUS
 {
 	STATUS_SUCCESS
 }
 "};
+
+macro_rules! INX_CONTENT {
+	() => {
+		indoc! {"
+;===================================================================
+; Copyright (c) [Year], [Author Name]
+;
+;Module Name:
+;    {0}.inf
+;===================================================================
+
+[Version]
+Signature   = \"$WINDOWS NT$\"
+Class       = SoftwareDevice
+ClassGuid   = {{62f9c741-b25a-46ce-b54c-9bccce08b6f2}}
+Provider    = %ProviderString%
+PnpLockDown = 1
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskId1%,,,\"\"
+
+[SourceDisksFiles]
+{0}.sys  = 1,,
+
+
+; ================= Install section =================
+
+[Manufacturer]
+%StdMfg%=Standard,NT$ARCH$.10.0...16299
+
+[Standard.NT$ARCH$.10.0...16299]
+%{1}.DeviceDesc%={1}_Device, root\\{0}
+
+[{1}_Device.NT$ARCH$]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+{0}.sys
+
+; ================= Service installation =================
+[{1}_Device.NT$ARCH$.Services]
+AddService = {0}, %SPSVCINST_ASSOCSERVICE%, {1}_Service_Inst
+
+[{1}_Service_Inst]
+DisplayName    = %{1}.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\\{0}.sys
+
+; ================= Strings =================
+[Strings]
+SPSVCINST_ASSOCSERVICE = 0x00000002
+ProviderString         = \"SampleProvider\"
+StdMfg                 = \"(Standard system devices)\"
+DiskId1                = \"sample\"
+ClassName              = \"sample\"
+{1}.DeviceDesc      = \"sample device\"
+{1}.SVCDESC         = \"sample service\"
+"}
+	};
+}
 
 fn main()
 {
@@ -196,7 +261,7 @@ fn main()
 	let cargo_out = Command::new("cargo").args(["new", crate_name.as_str(), "--lib"]).status();
 	handle_process_output!(cargo_out);
 	// Switch directory.
-	let r = set_current_dir(crate_name);
+	let r = set_current_dir(crate_name.as_str());
 	if let Err(e) = r
 	{
 		panic!("Failed to switch directory! Reason: {}", e);
@@ -286,7 +351,23 @@ fn main()
 		}
 		Err(e) => panic!("Failed to open src/lib.rs! Reason: {e}")
 	}
+	// Setup .inx
+	let r = File::create(format!("{}.inx", crate_name.as_str()).as_str());
+	match r
+	{
+		Ok(mut f) =>
+		{
+			let crate_name_lower = crate_name.to_lowercase();
+			let crate_name_upper = crate_name.to_uppercase();
+			let r = write!(f, INX_CONTENT!(), crate_name_lower, crate_name_upper);
+			panic_if_err!(r, "write to .inx file");
+			let r = f.sync_all();
+			panic_if_err!(r, "sync .inx file");
+		}
+		Err(e) => panic!("Failed to create {}.inx! Reason: {e}", crate_name)
+	}
 	println!("Wizard has completed creating a new Windows Driver crate!");
+	println!("You will need to manually execute `cargo make` to get started!");
 	let r = timer.elapsed();
 	match r
 	{
