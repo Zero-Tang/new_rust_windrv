@@ -258,7 +258,7 @@ fn main()
 		};
 	}
 	// Create the crate.
-	let cargo_out = Command::new("cargo").args(["new", crate_name.as_str(), "--lib"]).status();
+	let cargo_out = Command::new("cargo").args(["new", crate_name.as_str(), "--lib", "--vcs", vcs_type.as_str()]).status();
 	handle_process_output!(cargo_out);
 	// Switch directory.
 	let r = set_current_dir(crate_name.as_str());
