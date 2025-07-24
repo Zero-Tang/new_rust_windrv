@@ -46,7 +46,8 @@ rustflags = [\"-C\", \"target-feature=+crt-static\"]
 "};
 
 const BUILD_RS_CONTENT:&str = indoc! {"
-fn main() -> Result<(), wdk_build::ConfigError> {
+fn main() -> Result<(), wdk_build::ConfigError>
+{
    wdk_build::configure_wdk_binary_build()
 }
 "};
@@ -58,13 +59,12 @@ const LIB_RS_CONTENT:&str = indoc! {"// New Windows Driver Crate
 extern crate wdk_panic;
 
 use wdk_alloc::WdkAllocator;
+use wdk_sys::*;
 
 #[global_allocator]
 static GLOBAL_ALLOCATOR: WdkAllocator = WdkAllocator;
 
-use wdk_sys::*;
-
-#[export_name = \"DriverEntry\"]
+#[unsafe(export_name = \"DriverEntry\")]
 pub unsafe extern \"system\" fn driver_entry(_driver: PDRIVER_OBJECT, _registry_path: PCUNICODE_STRING) -> NTSTATUS
 {
 	STATUS_SUCCESS
@@ -138,7 +138,7 @@ ClassName              = \"sample\"
 
 fn main()
 {
-	print!("{}", HELLO_TEXT);
+	print!("{HELLO_TEXT}");
 	let mut editing:bool = true;
 	let mut crate_name = String::new();
 	let mut driver_type = String::new();
@@ -174,7 +174,7 @@ fn main()
 					{
 						continue;
 					}
-					println!("Unrecognized driver type: {}!", driver_type);
+					println!("Unrecognized driver type: {driver_type}!");
 					driver_type = String::new();
 				}
 			}
@@ -193,9 +193,9 @@ fn main()
 		}
 		// Confirmation
 		println!("\nAre you sure?\nConfirm the following configurations:");
-		println!("Crate Name: {}", crate_name);
-		println!("Driver Type: {}", driver_type);
-		println!("Version-Control System: {}", vcs_type);
+		println!("Crate Name: {crate_name}");
+		println!("Driver Type: {driver_type}");
+		println!("Version-Control System: {vcs_type}");
 		println!("\nType 1 to confirm. Type 2 to retry. Type 3 to quit. (Default: 1 - Confirm)");
 		let mut confirmation = String::new();
 		loop
@@ -250,7 +250,7 @@ fn main()
 				{
 					if out.code().unwrap() != 0
 					{
-						panic!("Cargo returned non-zero status! {}", out);
+						panic!("Cargo returned non-zero status! {out}");
 					}
 				}
 				Err(e) => panic!("Failed to execute cargo! Reason: {e}")
@@ -264,7 +264,7 @@ fn main()
 	let r = set_current_dir(crate_name.as_str());
 	if let Err(e) = r
 	{
-		panic!("Failed to switch directory! Reason: {}", e);
+		panic!("Failed to switch directory! Reason: {e}");
 	}
 	// Add dependencies.
 	let cargo_out = Command::new("cargo").args(["add", "--build", "wdk-build"]).status();
@@ -288,7 +288,7 @@ fn main()
 		{
 			let r = f.write_all(CARGO_TOML_ADDITION.as_bytes());
 			panic_if_err!(r, "write to Cargo.toml");
-			let r = f.write_all(format!("\"{}\"\n", driver_type).as_bytes());
+			let r = f.write_all(format!("\"{driver_type}\"\n").as_bytes());
 			panic_if_err!(r, "write to Cargo.toml");
 			let r = f.sync_all();
 			panic_if_err!(r, "sync Cargo.toml");
@@ -364,7 +364,7 @@ fn main()
 			let r = f.sync_all();
 			panic_if_err!(r, "sync .inx file");
 		}
-		Err(e) => panic!("Failed to create {}.inx! Reason: {e}", crate_name)
+		Err(e) => panic!("Failed to create {crate_name}.inx! Reason: {e}")
 	}
 	println!("Wizard has completed creating a new Windows Driver crate!");
 	println!("You will need to manually execute `cargo make` to get started!");

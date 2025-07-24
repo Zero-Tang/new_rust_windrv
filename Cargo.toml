@@ -1,7 +1,7 @@
 [package]
 name = "new_rust_windrv"
-version = "0.1.0"
-edition = "2021"
+version = "0.1.1"
+edition = "2024"
 readme = "readme.md"
 license-file = "license.txt"
 repository = "https://github.com/Zero-Tang/new_rust_windrv"
